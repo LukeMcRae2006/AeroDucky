@@ -1,0 +1,155 @@
+import pygame
+from sys import exit
+from random import randint
+import math
+
+
+
+def turnLeft():
+    global player_rect, player_surface, player_right
+    if player_rect.x > 0:
+        player_rect.x -=1 * playerSpeed
+        player_surface = player_right
+    print('turning left')
+
+    
+def turnRight():
+    global player_rect, player_surface, player_left
+    if player_rect.x < 262:
+        player_rect.x +=1 * playerSpeed
+        player_surface = player_left
+    print('turning right')
+
+
+def obstacleMove():
+    if obstacle_rect.y > 300:
+        obstacle_rect.y = randint(1, 20) * -1
+        obstacle_rect.x = randint(5, 280)
+    obstacle_rect.y += 1 * 8
+
+def obstacleBiggerMove():
+    if obstacle_bigger_rect.y > 300:
+        obstacle_bigger_rect.y = randint(1, 40) * -1
+        obstacle_bigger_rect.x = randint(5, 290)
+    obstacle_bigger_rect.y += 1 * 6
+
+    
+   
+   
+def display_score():
+   
+    current_time = int(pygame.time.get_ticks()/1000) - start_time
+    
+    score_surface = text_font.render(f'Distance: {current_time}', False, 'Black')
+    score_rect = score_surface.get_rect(center = (60,290))
+    screen.blit(score_surface, score_rect)
+    return current_time
+
+    
+        
+        
+
+pygame.init()
+screen = pygame.display.set_mode((300,300))
+pygame.display.set_caption("AeroDucky!")
+clock = pygame.time.Clock()
+text_font = pygame.font.Font(None, 30)
+game_active = False
+running = True
+
+
+#background and intro
+background_surface = pygame.image.load('Graphics/background.png').convert_alpha()
+title_card = pygame.image.load('Graphics/title_card.png').convert_alpha()
+title_card_rect = title_card.get_rect(center = (150, 150))
+
+#player
+
+player_x = 150
+player_y = 280
+playerSpeed = 6
+player_straight = pygame.image.load('Graphics/Player/player.png').convert_alpha()
+player_straight = pygame.transform.scale(player_straight, (40, 40))
+player_right = pygame.image.load('Graphics/Player/player_right.png').convert_alpha()
+player_right = pygame.transform.scale(player_right, (40, 40))
+player_left = pygame.image.load('Graphics/Player/player_left.png').convert_alpha()
+player_left = pygame.transform.scale(player_left, (40, 40))
+player_surface = pygame.transform.scale(player_straight, (40, 40))
+player_rect = player_surface.get_rect(center = (player_x, player_y))
+
+
+#obstacle
+
+obstacle_surface = pygame.image.load('Graphics/Enemy/obstacle.png').convert_alpha()
+obstacle_rect = obstacle_surface.get_rect(center = (100, -5))
+obstacle_bigger = pygame.image.load('Graphics/Enemy/obstacleBigger.png').convert_alpha()
+obstacle_bigger_rect = obstacle_bigger.get_rect(center = (80, -30))
+
+
+#score
+player_score = 0
+start_time = 0
+
+
+while running:
+    
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if(event.key == pygame.K_SPACE) and game_active == False:
+                game_active = True
+                obstacle_bigger_rect.y = 400
+                obstacle_rect.y = 400
+                start_time = int(pygame.time.get_ticks()/1000)
+
+        
+                
+   
+
+
+    if game_active:
+     
+       #check inputs
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT]:
+            turnRight()
+        if keys[pygame.K_LEFT]:
+            turnLeft()
+        if keys[pygame.K_LEFT] == 0 and keys[pygame.K_RIGHT] == 0:
+            player_surface = player_straight
+       
+        #graphics in here
+        screen.blit(background_surface, (0, 0))
+        screen.blit(player_surface, player_rect)
+        screen.blit(obstacle_surface, obstacle_rect)
+        screen.blit(obstacle_bigger, obstacle_bigger_rect)
+        obstacleMove()
+        obstacleBiggerMove()
+
+        #collision
+        if player_rect.colliderect(obstacle_rect) or player_rect.colliderect(obstacle_bigger_rect):
+            game_active = False
+
+        player_score = display_score()
+
+
+
+    else:
+        screen.fill((30, 30, 180))
+        game_message = text_font.render('Press \'space\' to play', False, 'black')
+        game_message_rect = game_message.get_rect(center = (150, 50))
+        score_message = text_font.render(f'Final Distance:  {player_score}', False, 'black')
+        score_message_rect = score_message.get_rect(center = (150, 280))
+        screen.blit(game_message, game_message_rect)
+        screen.blit(title_card, title_card_rect)
+        if player_score > 0:
+            screen.blit(score_message, score_message_rect)
+        print('Press \'space\' to play')
+
+    pygame.display.update()
+    clock.tick(60) 
+
+
+quit()
